@@ -116,26 +116,110 @@ node ~/.claude/skills/xhs-cover/scripts/generate.mjs \
 
 ## 风格列表
 
-| | | |
-|---|---|---|
-| ![手绘边框](assets/styles/hand-drawn-border.jpg) | ![户外手写](assets/styles/outdoor-handwriting.jpg) | ![霓虹撞色](assets/styles/neon-contrast.jpg) |
-| **手绘边框** `hand-drawn-border` | **户外手写** `outdoor-handwriting` | **霓虹撞色** `neon-contrast` |
-| 黄色手绘描边，综艺活力感 | 竖排毛笔黄字，清新自由感 | 荧光粉绿大胆撞色，Y2K潮流 |
-| ![多层排版](assets/styles/multi-layer-layout.jpg) | ![书房知性](assets/styles/study-room-intellectual.jpg) | ![职场女性](assets/styles/professional-woman.jpg) |
-| **多层排版** `multi-layer-layout` | **书房知性** `study-room-intellectual` | **职场女性** `professional-woman` |
-| 黑橙混排，杂志编辑风格 | 奶油色手写字，温暖智慧感 | 奶黄大字+红色虚线，赋能感 |
-| ![贴纸活力](assets/styles/sticker-energy.jpg) | ![虚线装饰](assets/styles/dashed-decoration.jpg) | ![背景大字](assets/styles/background-big-text.jpg) |
-| **贴纸活力** `sticker-energy` | **虚线装饰** `dashed-decoration` | **背景大字** `background-big-text` |
-| 人物抠图贴纸效果，闪电星星装饰 | 白字橙副标，虚线半圆环绕 | 超大橙字作背景，人物前景 |
-| ![思考提问](assets/styles/thinking-question.jpg) | ![分屏标签](assets/styles/split-screen-tags.jpg) | ![温馨居家](assets/styles/cozy-home.jpg) |
-| **思考提问** `thinking-question` | **分屏标签** `split-screen-tags` | **温馨居家** `cozy-home` |
-| 蓝灰毛笔字，问号设计 | 上图下色块，黄蓝配色 | 黄白渐变字+椭圆高亮 |
-| ![职场大字](assets/styles/workplace-big-text.jpg) | ![深色发光](assets/styles/dark-glow.jpg) | ![居家励志](assets/styles/home-motivation.jpg) |
-| **职场大字** `workplace-big-text` | **深色发光** `dark-glow` | **居家励志** `home-motivation` |
-| 白色超大字叠人物，冲击力 | 深色背景+黄色发光文字 | 亮黄大字，开放姿势场景 |
-| ![黄粉横幅](assets/styles/yellow-pink-banner.jpg) | ![粉黄俏皮](assets/styles/pink-yellow-playful.jpg) | ![专业简洁](assets/styles/professional-clean.jpg) |
-| **黄粉横幅** `yellow-pink-banner` | **粉黄俏皮** `pink-yellow-playful` | **专业简洁** `professional-clean` |
-| 黄字顶部+粉色横幅底部 | 波浪英文+手写中文，可爱 | 白字简洁，现代办公场景 |
+<table>
+  <tr>
+    <td align="center" width="33%">
+      <img src="assets/styles/hand-drawn-border.jpg" width="220"><br>
+      <b>手绘边框</b> <code>hand-drawn-border</code><br>
+      <sub>黄色手绘描边，综艺活力感</sub>
+    </td>
+    <td align="center" width="33%">
+      <img src="assets/styles/outdoor-handwriting.jpg" width="220"><br>
+      <b>户外手写</b> <code>outdoor-handwriting</code><br>
+      <sub>竖排毛笔黄字，清新自由感</sub>
+    </td>
+    <td align="center" width="33%">
+      <img src="assets/styles/neon-contrast.jpg" width="220"><br>
+      <b>霓虹撞色</b> <code>neon-contrast</code><br>
+      <sub>荧光粉绿大胆撞色，Y2K潮流</sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="assets/styles/multi-layer-layout.jpg" width="220"><br>
+      <b>多层排版</b> <code>multi-layer-layout</code><br>
+      <sub>黑橙混排，杂志编辑风格</sub>
+    </td>
+    <td align="center">
+      <img src="assets/styles/study-room-intellectual.jpg" width="220"><br>
+      <b>书房知性</b> <code>study-room-intellectual</code><br>
+      <sub>奶油色手写字，温暖智慧感</sub>
+    </td>
+    <td align="center">
+      <img src="assets/styles/professional-woman.jpg" width="220"><br>
+      <b>职场女性</b> <code>professional-woman</code><br>
+      <sub>奶黄大字+红色虚线，赋能感</sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="assets/styles/sticker-energy.jpg" width="220"><br>
+      <b>贴纸活力</b> <code>sticker-energy</code><br>
+      <sub>人物抠图贴纸效果，闪电星星装饰</sub>
+    </td>
+    <td align="center">
+      <img src="assets/styles/dashed-decoration.jpg" width="220"><br>
+      <b>虚线装饰</b> <code>dashed-decoration</code><br>
+      <sub>白字橙副标，虚线半圆环绕</sub>
+    </td>
+    <td align="center">
+      <img src="assets/styles/background-big-text.jpg" width="220"><br>
+      <b>背景大字</b> <code>background-big-text</code><br>
+      <sub>超大橙字作背景，人物前景</sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="assets/styles/thinking-question.jpg" width="220"><br>
+      <b>思考提问</b> <code>thinking-question</code><br>
+      <sub>蓝灰毛笔字，问号设计</sub>
+    </td>
+    <td align="center">
+      <img src="assets/styles/split-screen-tags.jpg" width="220"><br>
+      <b>分屏标签</b> <code>split-screen-tags</code><br>
+      <sub>上图下色块，黄蓝配色</sub>
+    </td>
+    <td align="center">
+      <img src="assets/styles/cozy-home.jpg" width="220"><br>
+      <b>温馨居家</b> <code>cozy-home</code><br>
+      <sub>黄白渐变字+椭圆高亮</sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="assets/styles/workplace-big-text.jpg" width="220"><br>
+      <b>职场大字</b> <code>workplace-big-text</code><br>
+      <sub>白色超大字叠人物，冲击力</sub>
+    </td>
+    <td align="center">
+      <img src="assets/styles/dark-glow.jpg" width="220"><br>
+      <b>深色发光</b> <code>dark-glow</code><br>
+      <sub>深色背景+黄色发光文字</sub>
+    </td>
+    <td align="center">
+      <img src="assets/styles/home-motivation.jpg" width="220"><br>
+      <b>居家励志</b> <code>home-motivation</code><br>
+      <sub>亮黄大字，开放姿势场景</sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="assets/styles/yellow-pink-banner.jpg" width="220"><br>
+      <b>黄粉横幅</b> <code>yellow-pink-banner</code><br>
+      <sub>黄字顶部+粉色横幅底部</sub>
+    </td>
+    <td align="center">
+      <img src="assets/styles/pink-yellow-playful.jpg" width="220"><br>
+      <b>粉黄俏皮</b> <code>pink-yellow-playful</code><br>
+      <sub>波浪英文+手写中文，可爱</sub>
+    </td>
+    <td align="center">
+      <img src="assets/styles/professional-clean.jpg" width="220"><br>
+      <b>专业简洁</b> <code>professional-clean</code><br>
+      <sub>白字简洁，现代办公场景</sub>
+    </td>
+  </tr>
+</table>
 
 ---
 
@@ -153,11 +237,16 @@ node ~/.claude/skills/xhs-cover/scripts/generate.mjs \
 欢迎提交 PR！以下几类贡献特别受欢迎：
 
 ### 新增风格
-在 `scripts/generate.mjs` 的 `STYLES` 对象中添加一个新 key，包含：
-- `name`：风格中文名
-- `prompt`：详细的中文设计提示词
+在 `styles/` 目录下新建一个 JSON 文件（如 `styles/my-style.json`）：
 
-参考现有风格格式，确保包含【布局要求】【文字样式】【核心特效】【禁止事项】【氛围】几个区块。
+```json
+{
+  "name": "风格中文名",
+  "prompt": "详细的中文设计提示词..."
+}
+```
+
+参考现有风格格式，确保包含【布局要求】【文字样式】【核心特效】【禁止事项】【氛围】几个区块。同时附上一张效果参考图放到 `assets/styles/` 目录。
 
 ### 改进现有提示词
 如果你发现某个风格生成效果不好（比如文字乱码、构图不对），欢迎直接修改对应的 `prompt` 并附上改进前后的对比截图。
