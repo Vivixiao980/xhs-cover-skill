@@ -356,8 +356,8 @@ async function main() {
 
   // 构建 prompt
   const textPart = [
-    TITLE    ? `主标题：${TITLE}` : '',
-    SUBTITLE ? `副标题：${SUBTITLE}` : '',
+    TITLE    ? `- 大标题文字（醒目展示）：${TITLE}` : '',
+    SUBTITLE ? `- 副标题文字（较小展示）：${SUBTITLE}` : '',
   ].filter(Boolean).join('\n');
 
   const fullPrompt = `${style.prompt}\n\n【文字内容 - 使用以下文字】\n${textPart}${EXTRA ? '\n\n【额外要求】\n' + EXTRA : ''}`;
@@ -394,7 +394,9 @@ async function main() {
       const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
       const ext = result.mimeType.includes('png') ? 'png' : 'jpg';
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-      const fileName = `cover_${style.name}_${timestamp}_${i}.${ext}`;
+      const safeTitle = TITLE.replace(/[^\u4e00-\u9fa5a-zA-Z0-9]/g, '').slice(0, 20);
+      const dateStr = timestamp.slice(0, 10);
+      const fileName = `${style.name}_${safeTitle}_${dateStr}_${i}.${ext}`;
       const outputPath = path.join(resolvedOutputDir, fileName);
 
       fs.writeFileSync(outputPath, Buffer.from(result.data, 'base64'));
