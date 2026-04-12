@@ -117,26 +117,26 @@ node ~/.claude/skills/xhs-cover/scripts/generate.mjs \
 
 ## 风格列表
 
-| # | ID | 名称 | 描述 |
-|---|----|------|------|
-| 1 | `hand-drawn-border` | 手绘边框 | 黄色手绘描边，综艺活力感 |
-| 2 | `outdoor-handwriting` | 户外手写 | 竖排毛笔黄字，清新自由感 |
-| 3 | `neon-contrast` | 霓虹撞色 | 荧光粉绿大胆撞色，Y2K潮流 |
-| 4 | `multi-layer-layout` | 多层排版 | 黑橙混排，杂志编辑风格 |
-| 5 | `study-room-intellectual` | 书房知性 | 奶油色手写字，温暖智慧感 |
-| 6 | `professional-woman` | 职场女性 | 奶黄大字+红色虚线，赋能感 |
-| 7 | `sticker-energy` | 贴纸活力 | 人物抠图贴纸效果，闪电星星装饰 |
-| 8 | `dashed-decoration` | 虚线装饰 | 白字橙副标，虚线半圆环绕 |
-| 9 | `background-big-text` | 背景大字 | 超大橙字作背景，人物前景 |
-| 10 | `thinking-question` | 思考提问 | 蓝灰毛笔字，问号设计 |
-| 11 | `split-screen-tags` | 分屏标签 | 上图下色块，黄蓝配色 |
-| 12 | `cozy-home` | 温馨居家 | 黄白渐变字+椭圆高亮 |
-| 13 | `workplace-big-text` | 职场大字 | 白色超大字叠人物，冲击力 |
-| 14 | `dark-glow` | 深色发光 | 深色背景+黄色发光文字 |
-| 15 | `home-motivation` | 居家励志 | 亮黄大字，开放姿势场景 |
-| 16 | `yellow-pink-banner` | 黄粉横幅 | 黄字顶部+粉色横幅底部 |
-| 17 | `pink-yellow-playful` | 粉黄俏皮 | 波浪英文+手写中文，可爱 |
-| 18 | `professional-clean` | 专业简洁 | 白字简洁，现代办公场景 |
+| | | |
+|---|---|---|
+| ![手绘边框](assets/styles/hand-drawn-border.jpg) | ![户外手写](assets/styles/outdoor-handwriting.jpg) | ![霓虹撞色](assets/styles/neon-contrast.jpg) |
+| **手绘边框** `hand-drawn-border` | **户外手写** `outdoor-handwriting` | **霓虹撞色** `neon-contrast` |
+| 黄色手绘描边，综艺活力感 | 竖排毛笔黄字，清新自由感 | 荧光粉绿大胆撞色，Y2K潮流 |
+| ![多层排版](assets/styles/multi-layer-layout.jpg) | ![书房知性](assets/styles/study-room-intellectual.jpg) | ![职场女性](assets/styles/professional-woman.jpg) |
+| **多层排版** `multi-layer-layout` | **书房知性** `study-room-intellectual` | **职场女性** `professional-woman` |
+| 黑橙混排，杂志编辑风格 | 奶油色手写字，温暖智慧感 | 奶黄大字+红色虚线，赋能感 |
+| ![贴纸活力](assets/styles/sticker-energy.jpg) | ![虚线装饰](assets/styles/dashed-decoration.jpg) | ![背景大字](assets/styles/background-big-text.jpg) |
+| **贴纸活力** `sticker-energy` | **虚线装饰** `dashed-decoration` | **背景大字** `background-big-text` |
+| 人物抠图贴纸效果，闪电星星装饰 | 白字橙副标，虚线半圆环绕 | 超大橙字作背景，人物前景 |
+| ![思考提问](assets/styles/thinking-question.jpg) | ![分屏标签](assets/styles/split-screen-tags.jpg) | ![温馨居家](assets/styles/cozy-home.jpg) |
+| **思考提问** `thinking-question` | **分屏标签** `split-screen-tags` | **温馨居家** `cozy-home` |
+| 蓝灰毛笔字，问号设计 | 上图下色块，黄蓝配色 | 黄白渐变字+椭圆高亮 |
+| ![职场大字](assets/styles/workplace-big-text.jpg) | ![深色发光](assets/styles/dark-glow.jpg) | ![居家励志](assets/styles/home-motivation.jpg) |
+| **职场大字** `workplace-big-text` | **深色发光** `dark-glow` | **居家励志** `home-motivation` |
+| 白色超大字叠人物，冲击力 | 深色背景+黄色发光文字 | 亮黄大字，开放姿势场景 |
+| ![黄粉横幅](assets/styles/yellow-pink-banner.jpg) | ![粉黄俏皮](assets/styles/pink-yellow-playful.jpg) | ![专业简洁](assets/styles/professional-clean.jpg) |
+| **黄粉横幅** `yellow-pink-banner` | **粉黄俏皮** `pink-yellow-playful` | **专业简洁** `professional-clean` |
+| 黄字顶部+粉色横幅底部 | 波浪英文+手写中文，可爱 | 白字简洁，现代办公场景 |
 
 ---
 
