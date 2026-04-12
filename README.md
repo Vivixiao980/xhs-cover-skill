@@ -20,8 +20,7 @@
 ## 前置要求
 
 - [Claude Code](https://claude.ai/code) CLI 已安装
-- macOS（图片 EXIF 自动旋转依赖 `sips`）
-- Node.js 18+
+- Node.js 18+（macOS / Linux / Windows 均支持）
 
 ---
 

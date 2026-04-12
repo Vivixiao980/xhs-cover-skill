@@ -108,6 +108,11 @@ mkdir -p ~/.config/xhs-cover
 }
 ```
 
+写入后立即执行（保护 API Key 安全）：
+```bash
+chmod 600 ~/.config/xhs-cover/config.json
+```
+
 #### 1f. 测试 API 连通性
 
 ```bash

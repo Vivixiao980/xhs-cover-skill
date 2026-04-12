@@ -1,0 +1,25 @@
+{
+  "name": "xhs-cover-skill",
+  "version": "1.0.0",
+  "description": "小红书封面生成器 - Claude Code Skill",
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "sharp": "^0.33.0"
+  },
+  "scripts": {
+    "generate": "node scripts/generate.mjs"
+  },
+  "author": "Vivi",
+  "license": "MIT",
+  "keywords": [
+    "xiaohongshu",
+    "xhs",
+    "cover",
+    "claude-code",
+    "skill",
+    "gemini"
+  ]
+}
