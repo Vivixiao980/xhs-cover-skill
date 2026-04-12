@@ -205,13 +205,17 @@ function httpsPost(urlStr, headers, bodyObj, timeoutMs = 120_000) {
 async function generateImage({ apiKey, baseUrl, apiEndpoint, model, imageBase64, mimeType, prompt, aspectRatio, retries = MAX_RETRIES }) {
   const url = apiEndpoint || `${baseUrl}/v1/chat/completions`;
   const headers = { 'Authorization': `Bearer ${apiKey}` };
+  const ratioMap = { '3:4': '竖版3:4比例（宽:高）', '1:1': '正方形1:1比例', '9:16': '竖版9:16比例', '4:3': '横版4:3比例' };
+  const ratioHint = ratioMap[aspectRatio] || '竖版3:4比例';
+  const fullPrompt = `${prompt}\n\n【输出规格】生成${ratioHint}的图片。`;
+
   const body = {
     model,
     messages: [{
       role: 'user',
       content: [
         { type: 'image_url', image_url: { url: `data:${mimeType};base64,${imageBase64}` } },
-        { type: 'text', text: prompt },
+        { type: 'text', text: fullPrompt },
       ],
     }],
     response_modalities: ['image', 'text'],
