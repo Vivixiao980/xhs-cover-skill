@@ -153,6 +153,30 @@ node ~/.claude/skills/xhs-cover/scripts/generate.mjs \
 
 ---
 
+## 贡献指南
+
+欢迎提交 PR！以下几类贡献特别受欢迎：
+
+### 新增风格
+在 `scripts/generate.mjs` 的 `STYLES` 对象中添加一个新 key，包含：
+- `name`：风格中文名
+- `prompt`：详细的中文设计提示词
+
+参考现有风格格式，确保包含【布局要求】【文字样式】【核心特效】【禁止事项】【氛围】几个区块。
+
+### 改进现有提示词
+如果你发现某个风格生成效果不好（比如文字乱码、构图不对），欢迎直接修改对应的 `prompt` 并附上改进前后的对比截图。
+
+### 其他贡献
+- 增加新的图片处理功能（如自动抠图、滤镜）
+- 支持更多 API 提供商
+- 改进 Onboarding 流程
+- 修复 Bug
+
+提交 PR 前请简单描述改动内容，如有效果图更好！
+
+---
+
 ## License
 
 MIT — 作者：[Vivi](https://xhscover.vivi.wiki)
