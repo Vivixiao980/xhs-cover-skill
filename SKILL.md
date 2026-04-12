@@ -53,7 +53,7 @@ cat ~/.config/xhs-cover/config.json 2>/dev/null
 | 选项 | 说明 |
 |------|------|
 | Google AI Studio（官方，免费） | 使用谷歌官方 API，免费额度充足，需要科学上网，适合个人使用 |
-| 第三方 API 代理 | 使用 VectorEngine / Cloudsway 等代理服务，无需科学上网，按量付费 |
+| 第三方 API 代理 | 使用兼容 OpenAI 格式的第三方代理服务，无需科学上网，需提供 Base URL、API Key 和模型名称 |
 
 #### 1c. 根据选择收集 API 信息
 
@@ -79,10 +79,10 @@ cat ~/.config/xhs-cover/config.json 2>/dev/null
 
 **如果选择第三方 API**：
 
-用 AskUserQuestion 一次性询问：
-- **API Key**（必填）
-- **API Base URL**（必填，如 `https://api.vectorengine.ai`）
-- **模型名称**（必填，如 `gemini-3-pro-image-preview`）
+用 AskUserQuestion 一次性询问以下三项：
+- **API Base URL**（必填，例如 `https://api.your-provider.com`）
+- **API Key**（必填，由服务商提供）
+- **模型名称**（必填，推荐填写 `gemini-3-pro-image-preview`，可向服务商确认支持的模型）
 
 #### 1d. 询问输出目录
 
