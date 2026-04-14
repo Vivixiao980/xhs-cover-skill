@@ -37,6 +37,7 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 import https from 'https';
+import { execFileSync } from 'child_process';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -69,7 +70,11 @@ const configPath = path.join(os.homedir(), '.config', 'xhs-cover', 'config.json'
 let config = {};
 try {
   config = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
-} catch {}
+} catch (e) {
+  if (e.code !== 'ENOENT') {
+    console.warn(`⚠️ 配置文件损坏（${configPath}），已忽略: ${e.message}`);
+  }
+}
 
 const API_KEY      = getArg('api-key')      || config.apiKey      || process.env.XHS_COVER_API_KEY || process.env.GEMINI_API_KEY;
 const BASE_URL     = getArg('base-url')     || config.baseUrl     || process.env.XHS_COVER_BASE_URL     || null;
@@ -80,12 +85,24 @@ const IMAGE_PATH   = getArg('image');
 const STYLE_ID     = getArg('style');
 const TITLE        = getArg('title')        || '';
 const SUBTITLE     = getArg('subtitle')     || '';
-const COUNT        = Math.min(parseInt(getArg('count') || '1', 10), 5);
+const _countRaw = parseInt(getArg('count') || '1', 10);
+if (isNaN(_countRaw) || _countRaw < 1) {
+  console.error('❌ --count 必须是 1-5 的整数'); process.exit(1);
+}
+const COUNT        = Math.min(_countRaw, 5);
 const RATIO        = getArg('aspect-ratio') || config.defaultAspectRatio || '3:4';
 const EXTRA        = getArg('extra')        || '';
 const MANUAL_ROTATE   = getArg('rotate');
 const NO_AUTO_ORIENT  = hasFlag('no-auto-orient');
-const MAX_RETRIES     = parseInt(getArg('retries') || '2', 10);
+const _retriesRaw = parseInt(getArg('retries') || '2', 10);
+if (isNaN(_retriesRaw) || _retriesRaw < 0) {
+  console.error('❌ --retries 必须是非负整数'); process.exit(1);
+}
+const MAX_RETRIES     = _retriesRaw;
+const VALID_RATIOS    = ['3:4', '1:1', '9:16', '4:3'];
+if (!VALID_RATIOS.includes(RATIO)) {
+  console.error(`❌ 不支持的比例: ${RATIO}，可选值: ${VALID_RATIOS.join(' / ')}`); process.exit(1);
+}
 const TEST_MODE       = hasFlag('test');
 
 // ─── 动态加载风格 ────────────────────────────────────────────────────────────
@@ -280,7 +297,7 @@ async function generateImage({ apiKey, baseUrl, apiEndpoint, model, imageBase64,
 // ─── 主逻辑 ──────────────────────────────────────────────────────────────────
 
 async function main() {
-  // 测试模式
+  // 测试模式（只验证连通性和认证，不验证图片生成能力）
   if (TEST_MODE) {
     if (!API_KEY) { console.error('❌ 未提供 API Key'); process.exit(1); }
     if (!BASE_URL && !API_ENDPOINT) { console.error('❌ 未配置 API 地址'); process.exit(1); }
@@ -408,53 +425,55 @@ async function main() {
 
   let successCount = 0;
 
-  for (let i = 1; i <= COUNT; i++) {
-    const label = COUNT > 1 ? ` (${i}/${COUNT})` : '';
-    process.stdout.write(`⏳ 生成中${label}...`);
-    const startTime = Date.now();
+  try {
+    for (let i = 1; i <= COUNT; i++) {
+      const label = COUNT > 1 ? ` (${i}/${COUNT})` : '';
+      process.stdout.write(`⏳ 生成中${label}...`);
+      const startTime = Date.now();
+      const timer = setInterval(() => process.stdout.write('.'), 3000);
 
-    try {
-      const result = await generateImage({
-        apiKey: API_KEY,
-        baseUrl: BASE_URL,
-        apiEndpoint: API_ENDPOINT,
-        model: MODEL,
-        imageBase64,
-        mimeType,
-        prompt: fullPrompt,
-        aspectRatio: RATIO,
-      });
+      try {
+        const result = await generateImage({
+          apiKey: API_KEY,
+          baseUrl: BASE_URL,
+          apiEndpoint: API_ENDPOINT,
+          model: MODEL,
+          imageBase64,
+          mimeType,
+          prompt: fullPrompt,
+          aspectRatio: RATIO,
+        });
 
-      const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
-      const ext = result.mimeType.includes('png') ? 'png' : 'jpg';
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-      const safeTitle = TITLE.replace(/[^\u4e00-\u9fa5a-zA-Z0-9]/g, '').slice(0, 20);
-      const dateStr = timestamp.slice(0, 10);
-      const fileName = `${style.name}_${safeTitle}_${dateStr}_${i}.${ext}`;
-      const outputPath = path.join(resolvedOutputDir, fileName);
+        clearInterval(timer);
+        const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+        const ext = result.mimeType.includes('png') ? 'png' : 'jpg';
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+        const safeTitle = TITLE.replace(/[^\u4e00-\u9fa5a-zA-Z0-9]/g, '').slice(0, 20);
+        const dateStr = timestamp.slice(0, 10);
+        const fileName = `${style.name}_${safeTitle}_${dateStr}_${i}.${ext}`;
+        const outputPath = path.join(resolvedOutputDir, fileName);
 
-      fs.writeFileSync(outputPath, Buffer.from(result.data, 'base64'));
-      process.stdout.write(`\r✅ 已生成${label}（${elapsed}s）: ${outputPath}\n`);
-      successCount++;
+        fs.writeFileSync(outputPath, Buffer.from(result.data, 'base64'));
+        process.stdout.write(`\r✅ 已生成${label}（${elapsed}s）: ${outputPath}\n`);
+        successCount++;
 
-      // 自动打开图片（macOS: open, Linux: xdg-open）
-      if (COUNT === 1) {
-        try {
-          const opener = process.platform === 'darwin' ? 'open' : process.platform === 'linux' ? 'xdg-open' : null;
-          if (opener) {
-            const { execSync } = await import('child_process');
-            execSync(`${opener} "${outputPath}"`, { stdio: 'ignore' });
-          }
-        } catch {}
+        // 自动打开图片（macOS: open, Linux: xdg-open）
+        if (COUNT === 1) {
+          try {
+            const opener = process.platform === 'darwin' ? 'open' : process.platform === 'linux' ? 'xdg-open' : null;
+            if (opener) execFileSync(opener, [outputPath], { stdio: 'ignore' });
+          } catch {}
+        }
+      } catch (err) {
+        clearInterval(timer);
+        const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+        process.stdout.write(`\r❌ 生成失败${label}（${elapsed}s）: ${err.message}\n`);
       }
-    } catch (err) {
-      const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
-      process.stdout.write(`\r❌ 生成失败${label}（${elapsed}s）: ${err.message}\n`);
     }
+  } finally {
+    // 清理临时文件（无论是否出错都执行）
+    for (const f of tmpFiles) { try { fs.unlinkSync(f); } catch {} }
   }
-
-  // 清理临时文件
-  for (const f of tmpFiles) { try { fs.unlinkSync(f); } catch {} }
 
   console.log(`\n完成：${successCount}/${COUNT} 张成功，保存在 ${resolvedOutputDir}`);
   if (successCount === 0) process.exit(5);

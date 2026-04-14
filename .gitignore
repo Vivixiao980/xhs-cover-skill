@@ -5,7 +5,6 @@ Thumbs.db
 # Node
 node_modules/
 *.log
-package-lock.json
 
 # Config (contains API keys — never commit)
 config.json

@@ -74,12 +74,14 @@ else
   git clone "$REPO_URL" "$SKILL_DIR"
 fi
 
-# 安装依赖
+# 安装依赖（兼容 npm 6 的 --production 和 npm 7+ 的 --omit=dev）
 echo "📦 安装依赖（sharp）..."
 cd "$SKILL_DIR"
-if ! npm install --production --silent; then
+if npm install --omit=dev --silent 2>/dev/null || npm install --production --silent; then
+  :
+else
   echo "❌ 依赖安装失败。如果是 sharp 编译错误，尝试："
-  echo "   cd $SKILL_DIR && npm install --production --ignore-scripts && npm rebuild sharp"
+  echo "   cd $SKILL_DIR && npm install --omit=dev --ignore-scripts && npm rebuild sharp"
   exit 1
 fi
 echo "✓ 依赖安装完成"
