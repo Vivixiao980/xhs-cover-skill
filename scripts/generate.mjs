@@ -48,7 +48,7 @@ try {
   sharp = (await import('sharp')).default;
 } catch {
   console.error('❌ 缺少依赖 sharp，请在 Skill 目录运行：npm install');
-  console.error('   cd ~/.claude/skills/xhs-cover && npm install');
+  console.error('   cd <skill目录> && npm install');
   process.exit(1);
 }
 
@@ -71,10 +71,10 @@ try {
   config = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
 } catch {}
 
-const API_KEY      = getArg('api-key')      || config.apiKey      || process.env.GEMINI_API_KEY;
-const BASE_URL     = getArg('base-url')     || config.baseUrl     || null;
-const API_ENDPOINT = getArg('api-endpoint') || config.apiEndpoint || null;
-const MODEL        = getArg('model')        || config.model       || null;
+const API_KEY      = getArg('api-key')      || config.apiKey      || process.env.XHS_COVER_API_KEY || process.env.GEMINI_API_KEY;
+const BASE_URL     = getArg('base-url')     || config.baseUrl     || process.env.XHS_COVER_BASE_URL     || null;
+const API_ENDPOINT = getArg('api-endpoint') || config.apiEndpoint || process.env.XHS_COVER_API_ENDPOINT || null;
+const MODEL        = getArg('model')        || config.model       || process.env.XHS_COVER_MODEL        || null;
 const OUTPUT_DIR   = getArg('output-dir')   || config.outputDir   || path.join(os.homedir(), 'Desktop', 'XHS封面');
 const IMAGE_PATH   = getArg('image');
 const STYLE_ID     = getArg('style');
@@ -305,13 +305,25 @@ async function main() {
   }
 
   // 参数校验
-  if (!API_KEY)    { console.error('❌ 未提供 API Key（--api-key 或配置文件）'); process.exit(1); }
+  if (!API_KEY) {
+    console.error('❌ 未提供 API Key，请通过以下任一方式配置：');
+    console.error('   1. 运行 Skill Onboarding（对话中输入「生成封面」）');
+    console.error('   2. 环境变量 XHS_COVER_API_KEY=<key>');
+    console.error('   3. 命令行参数 --api-key <key>');
+    process.exit(1);
+  }
   if (!BASE_URL && !API_ENDPOINT) {
-    console.error('❌ 未配置 API 地址，请运行「生成封面」完成配置，或使用 --base-url / --api-endpoint 参数');
+    console.error('❌ 未配置 API 地址，请通过以下任一方式配置：');
+    console.error('   1. 运行 Skill Onboarding');
+    console.error('   2. 环境变量 XHS_COVER_BASE_URL=<url> 或 XHS_COVER_API_ENDPOINT=<url>');
+    console.error('   3. 命令行参数 --base-url <url> 或 --api-endpoint <url>');
     process.exit(1);
   }
   if (!MODEL) {
-    console.error('❌ 未配置模型名称，请运行「生成封面」完成配置，或使用 --model 参数');
+    console.error('❌ 未配置模型名称，请通过以下任一方式配置：');
+    console.error('   1. 运行 Skill Onboarding');
+    console.error('   2. 环境变量 XHS_COVER_MODEL=<model>');
+    console.error('   3. 命令行参数 --model <model>');
     process.exit(1);
   }
   if (!IMAGE_PATH) { console.error('❌ 未提供图片路径（--image）'); process.exit(1); }

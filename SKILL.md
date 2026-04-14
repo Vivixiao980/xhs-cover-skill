@@ -9,6 +9,13 @@ description: >
   Always trigger this skill when user mentions 小红书/XHS/RedNote together
   with 封面/cover/图片, OR when user uploads a reference image and asks
   about creating a similar style.
+metadata:
+  openclaw:
+    requires:
+      bins:
+        - node
+    primaryEnv: XHS_COVER_API_KEY
+    emoji: "🎨"
 ---
 
 # 小红书封面生成器
@@ -19,6 +26,17 @@ description: >
 - **作者**：Vivi
 - **支持风格**：18种预设风格 + 用户自定义风格
 - **技术原理**：调用 Gemini 图片生成模型，将你的人像照片 + 文字要求合成为封面图
+
+---
+
+## 路径约定
+
+本 Skill 的脚本位于 SKILL.md 所在目录。执行任何命令前，先确定 `SKILL_DIR`：
+
+- **Claude Code**：`~/.claude/skills/xhs-cover`
+- **OpenClaw**：`~/.openclaw/skills/xhs-cover`
+
+后续所有 `${SKILL_DIR}` 均指此路径，不要硬编码。
 
 ---
 
@@ -63,6 +81,18 @@ cat ~/.config/xhs-cover/config.json 2>/dev/null
 ```
 
 #### 1b. 选择 API 类型
+
+> 💡 **OpenClaw 用户**：可跳过 Onboarding，直接在 OpenClaw 配置文件中设置环境变量：
+> ```yaml
+> skills:
+>   entries:
+>     xhs-cover:
+>       env:
+>         XHS_COVER_API_KEY: "你的 API Key"
+>         XHS_COVER_BASE_URL: "https://generativelanguage.googleapis.com/v1beta/openai"
+>         XHS_COVER_MODEL: "gemini-2.0-flash-exp-image-generation"
+> ```
+> 设置后重启 OpenClaw 即可，无需走以下步骤。
 
 用 AskUserQuestion 询问（**必须先问这个，再问 key**）：
 
@@ -134,7 +164,7 @@ chmod 600 ~/.config/xhs-cover/config.json
 #### 1f. 测试 API 连通性
 
 ```bash
-node ~/.claude/skills/xhs-cover/scripts/generate.mjs --test
+node ${SKILL_DIR}/scripts/generate.mjs --test
 ```
 
 - ✅ 成功 → 告知用户 Onboarding 完成，直接进入 Step 2
@@ -255,7 +285,7 @@ cat ~/.config/xhs-cover/config.json
 从配置文件读取 API 信息，构建命令：
 
 ```bash
-node ~/.claude/skills/xhs-cover/scripts/generate.mjs \
+node ${SKILL_DIR}/scripts/generate.mjs \
   --image "图片绝对路径" \
   --style "风格ID" \
   --title "主标题" \
@@ -389,7 +419,7 @@ cat ~/.config/xhs-cover/config.json
 3. 用 Bash 工具运行生成：
 
    ```bash
-   node ~/.claude/skills/xhs-cover/scripts/generate.mjs \
+   node ${SKILL_DIR}/scripts/generate.mjs \
      --image "用户提供的照片路径" \
      --style "刚才保存的风格ID（文件名去掉.json）" \
      --title "测试标题" \

@@ -26,15 +26,40 @@
 
 ## 安装
 
-```bash
-# 1. 克隆到 Claude Code Skills 目录
-git clone https://github.com/Vivixiao980/xhs-cover-skill ~/.claude/skills/xhs-cover
+**Claude Code：**
 
-# 2. 安装依赖
+```bash
+git clone https://github.com/Vivixiao980/xhs-cover-skill ~/.claude/skills/xhs-cover
 cd ~/.claude/skills/xhs-cover && npm install
 ```
 
 重启 Claude Code 后，Skill 自动生效。
+
+**OpenClaw：**
+
+```bash
+git clone https://github.com/Vivixiao980/xhs-cover-skill ~/.openclaw/skills/xhs-cover
+cd ~/.openclaw/skills/xhs-cover && npm install
+```
+
+然后在 OpenClaw 配置中添加 API Key（可替代 Onboarding 流程）：
+
+```yaml
+# ~/.openclaw/config.yaml
+skills:
+  entries:
+    xhs-cover:
+      env:
+        XHS_COVER_API_KEY: "你的 API Key"
+        XHS_COVER_BASE_URL: "https://generativelanguage.googleapis.com/v1beta/openai"
+        XHS_COVER_MODEL: "gemini-2.0-flash-exp-image-generation"
+```
+
+**或者使用安装脚本（自动检测平台）：**
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Vivixiao980/xhs-cover-skill/main/install.sh | bash
+```
 
 ---
 

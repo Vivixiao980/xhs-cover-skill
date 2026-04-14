@@ -3,8 +3,28 @@
 
 set -e
 
-SKILL_DIR="$HOME/.claude/skills/xhs-cover"
 REPO_URL="https://github.com/Vivixiao980/xhs-cover-skill"
+
+# 自动检测安装平台
+if [ -d "$HOME/.claude/skills" ]; then
+  SKILL_DIR="$HOME/.claude/skills/xhs-cover"
+  echo "📍 检测到 Claude Code，安装到 $SKILL_DIR"
+elif [ -d "$HOME/.openclaw/skills" ]; then
+  SKILL_DIR="$HOME/.openclaw/skills/xhs-cover"
+  echo "📍 检测到 OpenClaw，安装到 $SKILL_DIR"
+else
+  echo "未检测到 Claude Code 或 OpenClaw 的 skills 目录。请选择安装位置："
+  echo "  1) Claude Code  ($HOME/.claude/skills/xhs-cover)"
+  echo "  2) OpenClaw     ($HOME/.openclaw/skills/xhs-cover)"
+  echo "  3) 自定义路径"
+  read -r -p "请输入选项 [1/2/3]: " choice
+  case "$choice" in
+    1) SKILL_DIR="$HOME/.claude/skills/xhs-cover" ;;
+    2) SKILL_DIR="$HOME/.openclaw/skills/xhs-cover" ;;
+    3) read -r -p "请输入完整安装路径: " SKILL_DIR ;;
+    *) echo "无效选项"; exit 1 ;;
+  esac
+fi
 
 echo "🎨 安装小红书封面生成器 Skill..."
 
