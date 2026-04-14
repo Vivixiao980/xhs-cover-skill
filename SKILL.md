@@ -100,7 +100,7 @@ cat ~/.config/xhs-cover/config.json 2>/dev/null
 
 | 选项 | 说明 |
 |------|------|
-| Google AI Studio（官方，免费） | 使用谷歌官方 API，免费额度充足，需要科学上网，适合个人使用 |
+| Google AI Studio（官方） | 使用谷歌官方 API，有免费层级（无需绑卡），但图片生成是否免费请以官方定价页为准，需要科学上网 |
 | 第三方 API 代理 | 使用兼容 OpenAI 格式的第三方代理服务，无需科学上网，需提供 Base URL、API Key 和模型名称 |
 
 #### 1c. 根据选择收集 API 信息
@@ -115,7 +115,7 @@ cat ~/.config/xhs-cover/config.json 2>/dev/null
 3. 点击「Create API key」
 4. 复制生成的 Key（以 AIza 开头）
 
-免费额度：每分钟最多15次请求，足够个人使用。
+注意：Gemini API 有免费层级，但图片生成功能是否免费以 https://ai.google.dev/gemini-api/docs/pricing 为准（Google 定价会随版本更新调整）。
 ```
 
 用 AskUserQuestion 询问：
@@ -123,7 +123,7 @@ cat ~/.config/xhs-cover/config.json 2>/dev/null
 
 然后自动设定：
 - `baseUrl` = `https://generativelanguage.googleapis.com/v1beta/openai`
-- `model` = `gemini-2.0-flash-exp-image-generation`
+- `model` = 当前支持图片生成的模型名（Google 会随版本迭代更新，可在 https://ai.google.dev/gemini-api/docs/models 查询最新名称）
 
 **如果选择第三方 API**：
 

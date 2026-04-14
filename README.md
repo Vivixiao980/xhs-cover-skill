@@ -80,26 +80,27 @@ xhs封面
 
 ## API 配置
 
-### 方案 A：Google AI Studio（推荐，免费）
+### 方案 A：Google AI Studio
 
 1. 访问 [aistudio.google.com/apikey](https://aistudio.google.com/apikey) 创建 API Key
 2. 在 Skill Onboarding 中选择「Google AI Studio」，粘贴 Key 即可
 
-> 免费额度：每分钟 15 次请求，足够个人使用。需要科学上网。
+> **关于免费**：Google AI Studio 有免费层级（无需绑卡），但**图片生成**功能是否在免费额度内会随 Google 的策略调整，建议在 [ai.google.dev/gemini-api/docs/pricing](https://ai.google.dev/gemini-api/docs/pricing) 确认最新情况。需要科学上网。
+
+> **关于模型名称**：Gemini 图片生成模型的 API 名称会随版本迭代变化，请在 [ai.google.dev/gemini-api/docs/models](https://ai.google.dev/gemini-api/docs/models) 确认当前支持图片输出的模型名。
 
 ### 方案 B：第三方 API 代理
 
-支持 [VectorEngine](https://api.vectorengine.ai)、Cloudsway 等兼容 OpenAI 格式的代理服务。无需科学上网，按量付费。
+支持任意兼容 OpenAI 格式的代理服务（无需科学上网，按量付费）。按需自行选择服务商，配置时提供 Base URL、API Key 和模型名称即可。
 
 配置文件保存在 `~/.config/xhs-cover/config.json`：
 
 ```json
 {
-  "apiType": "google",
-  "apiKey": "YOUR_API_KEY_HERE",
-  "apiEndpoint": "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
-  "model": "gemini-2.0-flash-exp-image-generation",
-  "outputDir": "~/Desktop/XHS封面",
+  "apiType": "third-party",
+  "apiKey": "your-api-key",
+  "baseUrl": "https://your-provider.com",
+  "model": "gemini-3-pro-image-preview",  "outputDir": "~/Desktop/XHS封面",
   "defaultAspectRatio": "3:4"
 }
 ```
