@@ -82,7 +82,7 @@ cat ~/.config/xhs-cover/config.json 2>/dev/null
 用 AskUserQuestion 一次性询问以下三项：
 - **API Base URL**（必填，例如 `https://api.your-provider.com`）
 - **API Key**（必填，由服务商提供）
-- **模型名称**（必填，可向服务商确认支持的模型，常见值：`gemini-2.0-flash-exp-image-generation`）
+- **模型名称**（必填，可向服务商确认支持的模型，推荐填写 `gemini-3-pro-image-preview`）
 
 #### 1d. 询问输出目录
 
