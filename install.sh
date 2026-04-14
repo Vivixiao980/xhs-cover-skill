@@ -56,7 +56,12 @@ fi
 
 # 安装依赖
 echo "📦 安装依赖（sharp）..."
-cd "$SKILL_DIR" && npm install --production --silent
+cd "$SKILL_DIR"
+if ! npm install --production --silent; then
+  echo "❌ 依赖安装失败。如果是 sharp 编译错误，尝试："
+  echo "   cd $SKILL_DIR && npm install --production --ignore-scripts && npm rebuild sharp"
+  exit 1
+fi
 echo "✓ 依赖安装完成"
 
 echo ""

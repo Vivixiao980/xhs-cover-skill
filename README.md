@@ -29,6 +29,9 @@
 ```bash
 # 1. 克隆到 Claude Code Skills 目录
 git clone https://github.com/Vivixiao980/xhs-cover-skill ~/.claude/skills/xhs-cover
+
+# 2. 安装依赖
+cd ~/.claude/skills/xhs-cover && npm install
 ```
 
 重启 Claude Code 后，Skill 自动生效。
@@ -68,7 +71,7 @@ xhs封面
 ```json
 {
   "apiType": "google",
-  "apiKey": "AIza...",
+  "apiKey": "YOUR_API_KEY_HERE",
   "apiEndpoint": "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
   "model": "gemini-2.0-flash-exp-image-generation",
   "outputDir": "~/Desktop/XHS封面",

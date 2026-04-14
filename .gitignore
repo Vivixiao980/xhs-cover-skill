@@ -1,8 +1,17 @@
+# OS
 .DS_Store
+Thumbs.db
+
+# Node
 node_modules/
 *.log
 package-lock.json
 
-# 配置文件含 API Key，禁止提交
-# 配置保存在 ~/.config/xhs-cover/config.json（不在本目录）
+# Config (contains API keys — never commit)
 config.json
+.env
+.env.*
+
+# IDE
+.vscode/
+.idea/

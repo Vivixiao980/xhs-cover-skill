@@ -72,9 +72,9 @@ try {
 } catch {}
 
 const API_KEY      = getArg('api-key')      || config.apiKey      || process.env.GEMINI_API_KEY;
-const BASE_URL     = getArg('base-url')     || config.baseUrl     || 'https://api.vectorengine.ai';
+const BASE_URL     = getArg('base-url')     || config.baseUrl     || null;
 const API_ENDPOINT = getArg('api-endpoint') || config.apiEndpoint || null;
-const MODEL        = getArg('model')        || config.model       || 'gemini-3-pro-image-preview';
+const MODEL        = getArg('model')        || config.model       || null;
 const OUTPUT_DIR   = getArg('output-dir')   || config.outputDir   || path.join(os.homedir(), 'Desktop', 'XHS封面');
 const IMAGE_PATH   = getArg('image');
 const STYLE_ID     = getArg('style');
@@ -95,7 +95,12 @@ const STYLES = {};
 try {
   for (const file of fs.readdirSync(stylesDir).filter(f => f.endsWith('.json'))) {
     const id = file.replace('.json', '');
-    STYLES[id] = JSON.parse(fs.readFileSync(path.join(stylesDir, file), 'utf-8'));
+    const style = JSON.parse(fs.readFileSync(path.join(stylesDir, file), 'utf-8'));
+    if (!style.name || !style.prompt) {
+      console.warn(`⚠️ 风格 ${id} 缺少 name 或 prompt 字段，已跳过`);
+      continue;
+    }
+    STYLES[id] = style;
   }
 } catch (e) {
   console.error(`❌ 无法加载风格文件（${stylesDir}）: ${e.message}`);
@@ -123,8 +128,14 @@ async function normalizeImage(filePath, { noAutoOrient, manualDeg, tmpDir }) {
   let pipeline = sharp(filePath);
 
   if (manualDeg) {
-    // 手动旋转：先 EXIF 修正，再叠加手动角度
-    pipeline = pipeline.rotate().rotate(parseInt(manualDeg, 10));
+    const deg = parseInt(manualDeg, 10);
+    if (isNaN(deg) || ![90, 180, 270].includes(deg)) {
+      process.stderr.write(`⚠️ 无效旋转角度: ${manualDeg}（只支持 90/180/270），改用自动旋转\n`);
+      pipeline = pipeline.rotate();
+    } else {
+      // 手动旋转：先 EXIF 修正，再叠加手动角度
+      pipeline = pipeline.rotate().rotate(deg);
+    }
   } else if (noAutoOrient) {
     // 跳过 EXIF 修正，原始方向
   } else {
@@ -272,6 +283,8 @@ async function main() {
   // 测试模式
   if (TEST_MODE) {
     if (!API_KEY) { console.error('❌ 未提供 API Key'); process.exit(1); }
+    if (!BASE_URL && !API_ENDPOINT) { console.error('❌ 未配置 API 地址'); process.exit(1); }
+    if (!MODEL) { console.error('❌ 未配置模型名称'); process.exit(1); }
     const url = API_ENDPOINT || `${BASE_URL}/v1/chat/completions`;
     console.log(`🔍 测试 API 连通性...`);
     console.log(`   URL: ${url}`);
@@ -293,6 +306,14 @@ async function main() {
 
   // 参数校验
   if (!API_KEY)    { console.error('❌ 未提供 API Key（--api-key 或配置文件）'); process.exit(1); }
+  if (!BASE_URL && !API_ENDPOINT) {
+    console.error('❌ 未配置 API 地址，请运行「生成封面」完成配置，或使用 --base-url / --api-endpoint 参数');
+    process.exit(1);
+  }
+  if (!MODEL) {
+    console.error('❌ 未配置模型名称，请运行「生成封面」完成配置，或使用 --model 参数');
+    process.exit(1);
+  }
   if (!IMAGE_PATH) { console.error('❌ 未提供图片路径（--image）'); process.exit(1); }
   if (!STYLE_ID)   {
     console.error('❌ 未提供风格ID（--style）\n可用风格：\n' + Object.entries(STYLES).map(([id, s]) => `  ${id} - ${s.name}`).join('\n'));
@@ -360,7 +381,8 @@ async function main() {
     SUBTITLE ? `- 副标题文字（较小展示）：${SUBTITLE}` : '',
   ].filter(Boolean).join('\n');
 
-  const fullPrompt = `${style.prompt}\n\n【文字内容 - 使用以下文字】\n${textPart}${EXTRA ? '\n\n【额外要求】\n' + EXTRA : ''}`;
+  const GLOBAL_RULES = `\n\n【全局禁止事项】\n- 严格只使用用户提供的标题和副标题，不得增减文字\n- 不得添加任何随机英文（如 haha、nice、wow 等）\n- 不得修改人物面部`;
+  const fullPrompt = `${style.prompt}${GLOBAL_RULES}\n\n【文字内容 - 使用以下文字】\n${textPart}${EXTRA ? '\n\n【额外要求】\n' + EXTRA : ''}`;
 
   // 准备输出目录
   const resolvedOutputDir = expandHome(OUTPUT_DIR);

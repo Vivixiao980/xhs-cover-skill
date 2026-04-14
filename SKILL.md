@@ -82,7 +82,7 @@ cat ~/.config/xhs-cover/config.json 2>/dev/null
 用 AskUserQuestion 一次性询问以下三项：
 - **API Base URL**（必填，例如 `https://api.your-provider.com`）
 - **API Key**（必填，由服务商提供）
-- **模型名称**（必填，推荐填写 `gemini-3-pro-image-preview`，可向服务商确认支持的模型）
+- **模型名称**（必填，可向服务商确认支持的模型，常见值：`gemini-2.0-flash-exp-image-generation`）
 
 #### 1d. 询问输出目录
 
@@ -116,11 +116,7 @@ chmod 600 ~/.config/xhs-cover/config.json
 #### 1f. 测试 API 连通性
 
 ```bash
-node ~/.claude/skills/xhs-cover/scripts/generate.mjs \
-  --test \
-  --api-key "$(python3 -c 'import json; c=json.load(open("/Users/$USER/.config/xhs-cover/config.json")); print(c["apiKey"])')" \
-  --base-url "$(python3 -c 'import json; c=json.load(open("/Users/$USER/.config/xhs-cover/config.json")); print(c["baseUrl"])')" \
-  --model "$(python3 -c 'import json; c=json.load(open("/Users/$USER/.config/xhs-cover/config.json")); print(c["model"])')"
+node ~/.claude/skills/xhs-cover/scripts/generate.mjs --test
 ```
 
 - ✅ 成功 → 告知用户 Onboarding 完成，直接进入 Step 2
@@ -249,11 +245,10 @@ node ~/.claude/skills/xhs-cover/scripts/generate.mjs \
   --extra "备注（如有）" \
   --count 张数 \
   --aspect-ratio "比例" \
-  --output-dir "输出目录" \
-  --api-key "$(python3 -c 'import json; c=json.load(open("/Users/$USER/.config/xhs-cover/config.json")); print(c["apiKey"])')" \
-  --base-url "$(python3 -c 'import json; c=json.load(open("/Users/$USER/.config/xhs-cover/config.json")); print(c["baseUrl"])')" \
-  --model "$(python3 -c 'import json; c=json.load(open("/Users/$USER/.config/xhs-cover/config.json")); print(c["model"])')"
+  --output-dir "输出目录"
 ```
+
+API 凭证由脚本自动从 `~/.config/xhs-cover/config.json` 读取，无需手动传入。
 
 **生成多种风格时**：依次执行，每次之间 sleep 8（避免并发导致 TLS 断开）。
 
