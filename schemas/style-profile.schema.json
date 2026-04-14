@@ -1,0 +1,171 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "XHS Cover Style Profile",
+  "description": "Structured style profile extracted from reference images for Xiaohongshu cover generation",
+  "type": "object",
+  "required": ["style_name", "version", "color_palette", "typography", "composition", "mood_keywords", "prompt_template"],
+  "properties": {
+    "style_name": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]*[a-z0-9]$",
+      "description": "URL-safe lowercase name, e.g. 'warm-healing-ins'"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+$",
+      "default": "1.0"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["draft", "reviewing", "verified", "published"],
+      "default": "draft"
+    },
+    "source_images": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 1,
+      "maxItems": 5,
+      "description": "Filenames of the reference images used"
+    },
+    "color_palette": {
+      "type": "object",
+      "required": ["primary", "background", "mood"],
+      "properties": {
+        "primary":    { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" },
+        "secondary":  { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" },
+        "accent":     { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" },
+        "background": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" },
+        "text_color": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" },
+        "mood": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1,
+          "maxItems": 3,
+          "description": "Color mood keywords, e.g. ['温暖', '柔和']"
+        }
+      }
+    },
+    "typography": {
+      "type": "object",
+      "required": ["title_style", "body_style"],
+      "properties": {
+        "title_style": {
+          "type": "string",
+          "enum": ["bold-sans", "bold-serif", "handwritten", "decorative", "light-sans", "light-serif"]
+        },
+        "body_style": {
+          "type": "string",
+          "enum": ["regular-sans", "regular-serif", "handwritten", "light-sans"]
+        },
+        "hierarchy": {
+          "type": "string",
+          "enum": ["strong-contrast", "moderate-contrast", "flat"],
+          "description": "How much size difference between title and body"
+        },
+        "cjk_punctuation": {
+          "type": "string",
+          "enum": ["fullwidth", "halfwidth"],
+          "default": "fullwidth"
+        }
+      }
+    },
+    "composition": {
+      "type": "object",
+      "required": ["layout"],
+      "properties": {
+        "layout": {
+          "type": "string",
+          "enum": [
+            "top-image-bottom-text",
+            "left-image-right-text",
+            "full-bleed-image-with-overlay",
+            "grid-cards",
+            "centered-text-only",
+            "magazine-spread",
+            "collage"
+          ]
+        },
+        "text_ratio": {
+          "type": "number",
+          "minimum": 0.1,
+          "maximum": 0.9,
+          "description": "How much of the cover area is text (0.4 = 40%)"
+        },
+        "whitespace": {
+          "type": "string",
+          "enum": ["minimal", "moderate", "generous"]
+        },
+        "alignment": {
+          "type": "string",
+          "enum": ["left", "center", "right", "mixed"]
+        }
+      }
+    },
+    "visual_elements": {
+      "type": "object",
+      "properties": {
+        "decorations": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "rounded-corners", "sharp-corners",
+              "soft-shadows", "hard-shadows", "no-shadows",
+              "borders", "no-borders",
+              "stickers", "emoji-accents",
+              "geometric-shapes", "organic-shapes",
+              "divider-lines", "background-patterns"
+            ]
+          }
+        },
+        "icons": {
+          "type": "string",
+          "enum": ["none", "line-style", "filled", "hand-drawn", "emoji"]
+        },
+        "background": {
+          "type": "string",
+          "enum": [
+            "solid-white", "solid-pastel", "solid-dark",
+            "gradient-subtle", "gradient-bold",
+            "textured-paper", "textured-fabric",
+            "photo-blurred", "pattern"
+          ]
+        }
+      }
+    },
+    "mood_keywords": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 2,
+      "maxItems": 5,
+      "description": "Overall vibe, e.g. ['温暖', '治愈', 'ins风']"
+    },
+    "prompt_template": {
+      "type": "string",
+      "description": "The image generation prompt template with {placeholders}"
+    },
+    "negative_prompt": {
+      "type": "string",
+      "description": "Things to avoid in generation",
+      "default": ""
+    },
+    "aspect_ratio": {
+      "type": "string",
+      "enum": ["3:4", "4:3", "1:1", "9:16", "16:9"],
+      "default": "3:4",
+      "description": "Default aspect ratio for this style"
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Only present for community-contributed styles",
+      "properties": {
+        "author":      { "type": "string" },
+        "description": { "type": "string" },
+        "tags":        { "type": "array", "items": { "type": "string" } },
+        "license":     { "type": "string", "default": "CC BY 4.0" },
+        "created_at":  { "type": "string", "format": "date" },
+        "downloads":   { "type": "integer", "default": 0 }
+      }
+    }
+  }
+}

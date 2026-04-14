@@ -1,6 +1,14 @@
 ---
 name: xhs-cover
-description: 生成小红书封面图片。支持18种预设风格，使用 Gemini API 直接在命令行生成封面。触发词：生成封面、xhs封面、小红书封面、制作封面
+description: >
+  Generate Xiaohongshu (XHS / RedNote) cover images using Gemini API.
+  Triggers for cover generation: "生成封面", "小红书封面", "xhs封面", "制作封面",
+  "帮我做张图", "XHS cover", "RedNote cover".
+  Triggers for style learning: "学习这个风格", "提取风格", "我想自定义风格",
+  "这张图的风格", "learn this style", "extract style".
+  Always trigger this skill when user mentions 小红书/XHS/RedNote together
+  with 封面/cover/图片, OR when user uploads a reference image and asks
+  about creating a similar style.
 ---
 
 # 小红书封面生成器
@@ -9,8 +17,18 @@ description: 生成小红书封面图片。支持18种预设风格，使用 Gemi
 
 - **官网**：https://xhscover.vivi.wiki（可在线预览所有风格效果图）
 - **作者**：Vivi
-- **支持风格**：18种预设风格，覆盖职场、居家、综艺、文艺等场景
+- **支持风格**：18种预设风格 + 用户自定义风格
 - **技术原理**：调用 Gemini 图片生成模型，将你的人像照片 + 文字要求合成为封面图
+
+---
+
+## 工作流入口
+
+触发后，先判断用户意图：
+
+- **生成封面**（默认）：用户想用已有风格生成封面 → 进入下方「执行流程」
+- **学习/提取风格**：用户上传了参考图，或说了「学习/提取/自定义风格」→ 跳到「风格学习工作流」
+- **使用自定义风格**：用户说「用 XX 风格生成」且 XX 不在内置列表中 → 检查 `styles/` 目录是否有对应 JSON；有则使用，无则建议先运行风格学习工作流
 
 ---
 
@@ -296,3 +314,146 @@ cat ~/.config/xhs-cover/config.json
 
 **Google API 不支持图片生成**：
 - 确认模型是 `gemini-2.0-flash-exp-image-generation`，不是普通对话模型
+
+---
+
+## 风格学习工作流
+
+让用户把喜欢的封面图「教」给 Skill，提取成可复用的风格模板，并可选择贡献到社区。
+
+### Phase 1：上传与分析
+
+1. 请用户上传 1-5 张参考图（支持 PNG / JPG / WebP）
+   - 0 张：提示「至少需要 1 张参考图」
+   - 超过 5 张：选取视觉差异最大的 5 张，说明原因
+
+2. 用 Read 工具读取每张图片，分析以下维度：
+   - **配色**：主色、辅色、点缀色（尽量给出 hex 值）、整体色彩情绪
+   - **字体感**：粗细（轻/常规/粗）、风格（无衬线/衬线/手写/装饰）、大小层级
+   - **构图**：文字与人物的位置关系、文字占比、留白多少、对齐方式
+   - **装饰元素**：有无边框、贴纸、图标、几何图形、背景纹理
+   - **整体氛围**：用 2-3 个关键词概括（如「温暖、治愈、ins 风」）
+
+3. 如果多张图风格冲突，明确指出冲突点，请用户选择方向，而不是取平均
+
+4. 向用户展示分析结果（用自然语言，不要直接甩 JSON）：
+   > 我从你的图片中提取了这些风格特征：
+   > - 配色：暖奶油底色，深棕文字，粉色点缀
+   > - 字体：标题超大粗体，副标题细小，对比强烈
+   > - 构图：人物居中，标题压在头顶，底部色块横幅
+   > - 氛围：温暖、生活感、小红书爆款风
+   >
+   > 你觉得这些对吗？有没有想调整的地方？
+
+### Phase 2：确认与生成 Prompt
+
+1. 用户确认分析结果（允许最多 3 轮调整）
+   - 「颜色再亮一点」→ 调整配色描述
+   - 「想要更简约」→ 减少装饰元素
+   - 「字体感觉不对」→ 进一步询问偏好
+
+2. 请用户为这个风格起个名字（建议基于氛围关键词，如「暖橙励志」）
+
+3. 根据分析结果，生成对应的风格 prompt，格式与内置风格完全一致：
+
+   ```json
+   {
+     "name": "用户起的中文名",
+     "prompt": "根据分析结果撰写的图片生成提示词..."
+   }
+   ```
+
+   Prompt 撰写要点：
+   - 明确【文字区域划分】（主标题在哪、副标题在哪）
+   - 明确【字体风格】（参考分析结果翻译成生图描述语言）
+   - 明确【背景/场景】
+   - 结尾加【禁止事项】（禁止多余文字、禁止修改人脸）
+
+4. 把生成的 JSON 保存到 `styles/` 目录：
+
+   ```bash
+   # 文件名用英文，与内置风格格式一致
+   # 例如：styles/warm-orange-motivation.json
+   ```
+
+   用 Write 工具写入文件。
+
+5. 确认：「✅ 风格『{name}』已保存！下次生成时直接选择这个风格就行。」
+
+### Phase 3：测试生成
+
+1. 询问用户：「要不要用这个风格试生成一张看看效果？」
+
+2. 如果是，收集测试内容（或使用默认标题「5 个让生活变好的小习惯」）
+
+3. 用 Bash 工具运行生成：
+
+   ```bash
+   node ~/.claude/skills/xhs-cover/scripts/generate.mjs \
+     --image "用户提供的照片路径" \
+     --style "刚才保存的风格ID（文件名去掉.json）" \
+     --title "测试标题" \
+     --aspect-ratio "3:4" \
+     --output-dir "/tmp/xhs-style-test"
+   ```
+
+4. 用 Read 工具展示生成结果，和原参考图放在一起让用户对比
+
+5. 如果不满意：找出哪个维度有偏差，回到 Phase 2 修改 prompt，最多迭代 3 次
+   - 3 次后仍不满意：「可以先保存当前版本，之后随时再优化」
+
+6. 满意后继续 Phase 4
+
+### Phase 4：贡献到社区（可选）
+
+1. 询问用户：
+   > 你的风格效果很棒！想不想把它分享给社区，让其他人也能用？
+   > 只需要提交一个 PR，你的名字会出现在贡献者列表里。
+
+2. 如果愿意，收集以下信息：
+   - **贡献者名字**（显示在 PR 和文件注释中）
+   - **风格简介**（一句话，例如「暖橙色调，适合励志、职场内容」）
+   - **标签**（3-5 个，例如：励志、职场、暖色）
+
+3. 在 `styles/` 目录里当前风格 JSON 文件顶部，追加 metadata 注释：
+
+   ```json
+   {
+     "name": "暖橙励志",
+     "author": "贡献者名字",
+     "description": "暖橙色调，适合励志、职场内容",
+     "tags": ["励志", "职场", "暖色"],
+     "prompt": "..."
+   }
+   ```
+
+4. 把 Phase 3 生成的测试图保存为 `assets/styles/{风格ID}.jpg`（作为预览图）
+
+5. 引导用户提交 PR：
+
+   **非技术用户**：
+   > 1. 打开 https://github.com/Vivixiao980/xhs-cover-skill
+   > 2. 进入 `styles/` 文件夹，点右上角「Add file」→「Upload files」
+   > 3. 上传你的 `{风格ID}.json` 文件
+   > 4. 同样操作，把预览图上传到 `assets/styles/` 文件夹
+   > 5. 在页面底部填写说明（如「新增风格：暖橙励志」），点「Propose changes」
+   > 6. 在下一页点「Create pull request」就完成了！
+
+   **技术用户**：
+   ```bash
+   # fork 仓库后：
+   git checkout -b style/warm-orange-motivation
+   git add styles/warm-orange-motivation.json assets/styles/warm-orange-motivation.jpg
+   git commit -m "feat: add warm-orange-motivation style"
+   git push origin style/warm-orange-motivation
+   # 然后在 GitHub 上提交 PR
+   ```
+
+6. 如果不愿意贡献：
+   > 没问题！风格已保存在本地，随时可以用。想分享的时候再告诉我。
+
+### 错误处理
+
+- **参考图分辨率过低**（短边 < 500px）：提醒用户分析精度可能下降，建议换高清图
+- **参考图不是封面设计**（纯照片、无排版元素）：说明此工作流需要有文字设计的封面图，纯人像照适合直接去生成封面
+- **用户中途放弃**：告知当前进度已到哪一步，风格文件是否已保存，下次可以从哪里继续
