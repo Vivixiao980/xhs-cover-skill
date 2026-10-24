@@ -23,6 +23,7 @@
  *   --no-auto-orient  跳过 EXIF 自动旋转
  *   --retries         失败重试次数，默认 2
  *   --test            只测试 API 连通性，不生成图片
+ *   --show-config     只显示配置状态，不输出 API Key
  *
  * Exit codes:
  *   0  成功
@@ -56,12 +57,30 @@ try {
 // ─── 解析命令行参数 ──────────────────────────────────────────────────────────
 
 const args = process.argv.slice(2);
+const valueOptions = new Set(['image', 'style', 'title', 'subtitle', 'extra', 'count', 'output-dir',
+  'api-key', 'base-url', 'api-endpoint', 'model', 'aspect-ratio', 'rotate', 'retries']);
+const flagOptions = new Set(['no-auto-orient', 'test', 'show-config']);
+const parsedArgs = new Map();
+for (let i = 0; i < args.length; i++) {
+  const match = args[i].match(/^--([^=]+)(?:=(.*))?$/s);
+  if (!match || (!valueOptions.has(match[1]) && !flagOptions.has(match[1]))) {
+    console.error('❌ 未知命令行参数'); process.exit(1);
+  }
+  const [, name, inlineValue] = match;
+  if (flagOptions.has(name)) {
+    if (inlineValue !== undefined) { console.error('❌ 开关参数不能携带值'); process.exit(1); }
+    parsedArgs.set(name, true);
+  } else {
+    const value = inlineValue !== undefined ? inlineValue : args[++i];
+    if (value === undefined) { console.error('❌ 命令行参数缺少值'); process.exit(1); }
+    parsedArgs.set(name, value);
+  }
+}
 function getArg(name) {
-  const idx = args.indexOf(`--${name}`);
-  return idx !== -1 ? args[idx + 1] : null;
+  return parsedArgs.get(name) ?? null;
 }
 function hasFlag(name) {
-  return args.includes(`--${name}`);
+  return parsedArgs.get(name) === true;
 }
 
 // ─── 读取配置 ────────────────────────────────────────────────────────────────
@@ -72,7 +91,7 @@ try {
   config = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
 } catch (e) {
   if (e.code !== 'ENOENT') {
-    console.warn(`⚠️ 配置文件损坏（${configPath}），已忽略: ${e.message}`);
+    console.warn(`⚠️ 配置文件无法读取或解析（${configPath}），已忽略`);
   }
 }
 
@@ -104,6 +123,7 @@ if (!VALID_RATIOS.includes(RATIO)) {
   console.error(`❌ 不支持的比例: ${RATIO}，可选值: ${VALID_RATIOS.join(' / ')}`); process.exit(1);
 }
 const TEST_MODE       = hasFlag('test');
+const SHOW_CONFIG     = hasFlag('show-config');
 
 // ─── 动态加载风格 ────────────────────────────────────────────────────────────
 
@@ -113,7 +133,7 @@ try {
   for (const file of fs.readdirSync(stylesDir).filter(f => f.endsWith('.json'))) {
     const id = file.replace('.json', '');
     const style = JSON.parse(fs.readFileSync(path.join(stylesDir, file), 'utf-8'));
-    if (!style.name || !style.prompt) {
+    if (typeof style.name !== 'string' || !style.name.trim() || typeof style.prompt !== 'string' || !style.prompt.trim()) {
       console.warn(`⚠️ 风格 ${id} 缺少 name 或 prompt 字段，已跳过`);
       continue;
     }
@@ -182,12 +202,26 @@ async function compressImage(filePath, tmpDir) {
 
 // ─── HTTP 工具（强制 HTTP/1.1，兼容各类 OpenAI 兼容端点）───────────────────
 
+function displayEndpoint(value) {
+  if (!value) return '(未配置)';
+  try {
+    const u = new URL(value);
+    return u.origin; // 不把 userinfo、路径、query 或 fragment 中的凭证写入日志
+  } catch {
+    return '(无效 URL)';
+  }
+}
+
 function httpsPost(urlStr, headers, bodyObj, timeoutMs = 120_000) {
   return new Promise((resolve, reject) => {
     const u = new URL(urlStr);
+    if (u.protocol !== 'https:' || u.username || u.password) {
+      return reject(new Error('API 地址必须使用 HTTPS，且不能包含用户名或密码'));
+    }
     const body = JSON.stringify(bodyObj);
     const req = https.request({
       hostname: u.hostname,
+      port: u.port || undefined,
       path: u.pathname + u.search,
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body), ...headers },
@@ -202,18 +236,18 @@ function httpsPost(urlStr, headers, bodyObj, timeoutMs = 120_000) {
           return reject(err);
         }
         if (res.statusCode >= 500) {
-          const err = new Error(`服务端错误（HTTP ${res.statusCode}）：${text.slice(0, 200)}`);
+          const err = new Error(`服务端错误（HTTP ${res.statusCode}）`);
           err.code = 'SERVER_ERROR';
           err.retryable = true;
           return reject(err);
         }
         if (res.statusCode < 200 || res.statusCode >= 300) {
-          const err = new Error(`HTTP ${res.statusCode}: ${text.slice(0, 300)}`);
+          const err = new Error(`HTTP ${res.statusCode}`);
           err.code = 'HTTP_ERROR';
           return reject(err);
         }
         try { resolve(JSON.parse(text)); }
-        catch { reject(Object.assign(new Error(`JSON 解析失败: ${text.slice(0, 200)}`), { code: 'PARSE_ERROR' })); }
+        catch { reject(Object.assign(new Error('API 响应不是有效 JSON'), { code: 'PARSE_ERROR' })); }
       });
     });
     req.setTimeout(timeoutMs, () => {
@@ -282,7 +316,7 @@ async function generateImage({ apiKey, baseUrl, apiEndpoint, model, imageBase64,
       }
 
       lastError = Object.assign(
-        new Error(`响应中未找到图片数据。预览: ${JSON.stringify(result).slice(0, 300)}`),
+        new Error('API 响应中未找到图片数据'),
         { code: 'NO_IMAGE', retryable: false }
       );
       break; // 格式错误不重试
@@ -297,6 +331,16 @@ async function generateImage({ apiKey, baseUrl, apiEndpoint, model, imageBase64,
 // ─── 主逻辑 ──────────────────────────────────────────────────────────────────
 
 async function main() {
+  if (SHOW_CONFIG) {
+    console.log(JSON.stringify({
+      apiKeyConfigured: Boolean(API_KEY),
+      endpoint: displayEndpoint(API_ENDPOINT || BASE_URL),
+      modelConfigured: Boolean(MODEL),
+      outputDir: OUTPUT_DIR,
+      defaultAspectRatio: RATIO,
+    }, null, 2));
+    return;
+  }
   // 测试模式（只验证连通性和认证，不验证图片生成能力）
   if (TEST_MODE) {
     if (!API_KEY) { console.error('❌ 未提供 API Key'); process.exit(1); }
@@ -304,9 +348,9 @@ async function main() {
     if (!MODEL) { console.error('❌ 未配置模型名称'); process.exit(1); }
     const url = API_ENDPOINT || `${BASE_URL}/v1/chat/completions`;
     console.log(`🔍 测试 API 连通性...`);
-    console.log(`   URL: ${url}`);
+    console.log(`   API: ${displayEndpoint(url)}`);
     console.log(`   Model: ${MODEL}`);
-    console.log(`   Key: ${API_KEY.slice(0, 8)}...${API_KEY.slice(-4)}`);
+    console.log('   Key: 已配置');
     try {
       await httpsPost(url,
         { 'Authorization': `Bearer ${API_KEY}` },
@@ -369,63 +413,60 @@ async function main() {
   }
 
   // 处理图片方向 + 压缩
-  const tmpDir = os.tmpdir();
-  let imagePath = resolvedImage;
-  let tmpFiles = [];
-
-  process.stdout.write(`🔄 处理图片（EXIF旋转+压缩）...`);
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'xhs-cover-'));
   try {
-    const normalized = await normalizeImage(resolvedImage, {
-      noAutoOrient: NO_AUTO_ORIENT,
-      manualDeg: MANUAL_ROTATE,
-      tmpDir,
-    });
-    tmpFiles.push(normalized);
-    imagePath = normalized;
-    process.stdout.write(` ✓\n`);
-  } catch (e) {
-    process.stdout.write(`\n⚠️  图片处理失败（${e.message}），使用原图\n`);
-  }
+    let imagePath = resolvedImage;
 
-  // 超大图再压缩
-  const imageSizeBytes = fs.statSync(imagePath).size;
-  if (imageSizeBytes > 4 * 1024 * 1024) {
-    process.stdout.write(`⚠️  图片较大（${(imageSizeBytes / 1024 / 1024).toFixed(1)}MB），进一步压缩...`);
+    process.stdout.write(`🔄 处理图片（EXIF旋转+压缩）...`);
     try {
-      const compressed = await compressImage(imagePath, tmpDir);
-      tmpFiles.push(compressed);
-      imagePath = compressed;
-      process.stdout.write(` ${(fs.statSync(imagePath).size / 1024 / 1024).toFixed(1)}MB ✓\n`);
+      const normalized = await normalizeImage(resolvedImage, {
+        noAutoOrient: NO_AUTO_ORIENT,
+        manualDeg: MANUAL_ROTATE,
+        tmpDir,
+      });
+      imagePath = normalized;
+      process.stdout.write(` ✓\n`);
     } catch (e) {
-      process.stdout.write(`\n⚠️  压缩失败，继续使用当前图片\n`);
+      throw new Error('图片解析或处理失败，已停止上传；请提供有效的 JPG / PNG / WebP 图片');
     }
-  }
 
-  const imageBase64 = fs.readFileSync(imagePath, 'base64');
-  const mimeType = detectMimeType(imagePath);
+    // 超大图再压缩
+    const imageSizeBytes = fs.statSync(imagePath).size;
+    if (imageSizeBytes > 4 * 1024 * 1024) {
+      process.stdout.write(`⚠️  图片较大（${(imageSizeBytes / 1024 / 1024).toFixed(1)}MB），进一步压缩...`);
+      try {
+        const compressed = await compressImage(imagePath, tmpDir);
+        imagePath = compressed;
+        process.stdout.write(` ${(fs.statSync(imagePath).size / 1024 / 1024).toFixed(1)}MB ✓\n`);
+      } catch (e) {
+        process.stdout.write(`\n⚠️  压缩失败，继续使用当前图片\n`);
+      }
+    }
 
-  // 构建 prompt
-  const textPart = [
-    TITLE    ? `- 大标题文字（醒目展示）：${TITLE}` : '',
-    SUBTITLE ? `- 副标题文字（较小展示）：${SUBTITLE}` : '',
-  ].filter(Boolean).join('\n');
+    const imageBase64 = fs.readFileSync(imagePath, 'base64');
+    const mimeType = detectMimeType(imagePath);
 
-  const GLOBAL_RULES = `\n\n【全局禁止事项】\n- 严格只使用用户提供的标题和副标题，不得增减文字\n- 不得添加任何随机英文（如 haha、nice、wow 等）\n- 不得修改人物面部`;
-  const fullPrompt = `${style.prompt}${GLOBAL_RULES}\n\n【文字内容 - 使用以下文字】\n${textPart}${EXTRA ? '\n\n【额外要求】\n' + EXTRA : ''}`;
+    // 构建 prompt
+    const textPart = [
+      TITLE    ? `- 大标题文字（醒目展示）：${TITLE}` : '',
+      SUBTITLE ? `- 副标题文字（较小展示）：${SUBTITLE}` : '',
+    ].filter(Boolean).join('\n');
 
-  // 准备输出目录
-  const resolvedOutputDir = expandHome(OUTPUT_DIR);
-  fs.mkdirSync(resolvedOutputDir, { recursive: true });
+    const GLOBAL_RULES = `\n\n【全局禁止事项】\n- 严格只使用用户提供的标题和副标题，不得增减文字\n- 不得添加任何随机英文（如 haha、nice、wow 等）\n- 不得修改人物面部`;
+    const fullPrompt = `${style.prompt}${GLOBAL_RULES}\n\n【文字内容 - 使用以下文字】\n${textPart}${EXTRA ? '\n\n【额外要求】\n' + EXTRA : ''}`;
 
-  console.log(`\n🎨 风格：${style.name} (${STYLE_ID})`);
-  console.log(`📝 主标题：${TITLE}${SUBTITLE ? ' / 副标题：' + SUBTITLE : ''}`);
-  console.log(`📐 比例：${RATIO}  |  数量：${COUNT} 张  |  重试上限：${MAX_RETRIES}`);
-  console.log(`🔑 API：${API_ENDPOINT || BASE_URL} / ${MODEL}`);
-  console.log('');
+    // 准备输出目录
+    const resolvedOutputDir = expandHome(OUTPUT_DIR);
+    fs.mkdirSync(resolvedOutputDir, { recursive: true });
 
-  let successCount = 0;
+    console.log(`\n🎨 风格：${style.name} (${STYLE_ID})`);
+    console.log(`📝 主标题：${TITLE}${SUBTITLE ? ' / 副标题：' + SUBTITLE : ''}`);
+    console.log(`📐 比例：${RATIO}  |  数量：${COUNT} 张  |  重试上限：${MAX_RETRIES}`);
+    console.log(`🔑 API：${displayEndpoint(API_ENDPOINT || BASE_URL)} / ${MODEL}`);
+    console.log('');
 
-  try {
+    let successCount = 0;
+
     for (let i = 1; i <= COUNT; i++) {
       const label = COUNT > 1 ? ` (${i}/${COUNT})` : '';
       process.stdout.write(`⏳ 生成中${label}...`);
@@ -450,8 +491,9 @@ async function main() {
         const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
         const safeTitle = TITLE.replace(/[^\u4e00-\u9fa5a-zA-Z0-9]/g, '').slice(0, 20);
         const dateStr = timestamp.slice(0, 10);
-        const fileName = `${style.name}_${safeTitle}_${dateStr}_${i}.${ext}`;
-        const outputPath = path.join(resolvedOutputDir, fileName);
+        const safeStyleName = style.name.replace(/[<>:"/\\|?*\x00-\x1f]/g, '_').slice(0, 80);
+        const fileName = `${safeStyleName}_${safeTitle}_${dateStr}_${i}.${ext}`;
+        const outputPath = path.resolve(resolvedOutputDir, fileName);
 
         fs.writeFileSync(outputPath, Buffer.from(result.data, 'base64'));
         process.stdout.write(`\r✅ 已生成${label}（${elapsed}s）: ${outputPath}\n`);
@@ -470,13 +512,12 @@ async function main() {
         process.stdout.write(`\r❌ 生成失败${label}（${elapsed}s）: ${err.message}\n`);
       }
     }
-  } finally {
-    // 清理临时文件（无论是否出错都执行）
-    for (const f of tmpFiles) { try { fs.unlinkSync(f); } catch {} }
-  }
 
-  console.log(`\n完成：${successCount}/${COUNT} 张成功，保存在 ${resolvedOutputDir}`);
-  if (successCount === 0) process.exit(5);
+    console.log(`\n完成：${successCount}/${COUNT} 张成功，保存在 ${resolvedOutputDir}`);
+    if (successCount === 0) process.exitCode = 5;
+  } finally {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  }
 }
 
 main().catch(err => {
