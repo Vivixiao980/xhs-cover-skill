@@ -155,6 +155,15 @@ node ~/.codex/skills/xhs-cover-skill/scripts/generate.mjs \
 | `--rotate` | 手动旋转：90/180/270 | 自动EXIF |
 | `--no-auto-orient` | 跳过EXIF自动旋转 | false |
 | `--test` | 只测试API连通性 | false |
+| `--show-config` | 仅显示配置状态，不输出密钥 | false |
+
+由 Agent 或程序处理动态用户输入时，请按 `SKILL.md` 的 JSON → 参数数组流程调用，避免把标题、备注或路径直接拼入 shell 命令。API Key 应在本地配置或通过环境变量设置，不要粘贴到聊天、写入命令行参数或输出完整配置文件。
+
+代码安全回归测试（使用合成图片、假密钥和模拟 HTTPS 请求）：
+
+```bash
+node --test tests/security.test.mjs
+```
 
 ---
 
